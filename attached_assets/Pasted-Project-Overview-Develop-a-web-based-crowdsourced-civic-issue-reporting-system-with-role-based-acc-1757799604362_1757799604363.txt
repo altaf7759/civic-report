@@ -1,0 +1,124 @@
+Project Overview:
+Develop a web-based crowdsourced civic issue reporting system with role-based access for Citizens, Admins, and Super Admins. The system allows citizens to report civic issues, admins to verify and resolve them, and the super admin to manage admin users. The system should include database integration, public issue visibility, and analytics, and the app must start with the login page(index page will be login page).
+
+User Roles and Features
+
+citizens, admins, and super admin
+
+1. Citizen
+
+--> Must login with Email + Password before accessing the system. If not already register they have to register (for register need name, email, password, and confirm password).
+
+ --> Dashboard shows “My Reports”: all submitted issues with status and can apply filters too (so make a filter box here too).
+
+ --> Submit Issue functionality:
+
+	. Title / Short Description
+
+	. Detailed Description
+	
+	. select state
+
+	. select city
+
+	. name
+
+	. phone number
+
+	. Select predefined category from the database (e.g., pothole, streetlight, garbage, water leakage, etc., add one more called "other").
+	
+	. Location/landmark (for now manual location not on map selection).
+
+	. Priority (Low / Medium / High)
+
+	. Upload images/videos (not optional it is required).
+
+	. do not ask for date but store.
+
+--> Issue upvote functionality:
+
+	. citizens can upvote the issues (can upvote her/his issues too).
+
+--> Fiter Functionality:
+
+	. citizens can filter all the listed issues by issue status (Not Assigned, Assigned, Resolved, need one more for all called 'All' to show all without this filter) and by location (state and then city).
+
+	. for more clarity: first dropdown for state and then for city (within the selected state) and after user can apply issue status (Not Assigned, Assigned, Resolved). * we are taking 	  state and city while listing issues so we can use those data, and to find state and city list you can use any free api.
+
+--> Issue Workflow:
+
+	. Status updates: Not Assigned → Assigned → Resolved.
+
+	. Submitted issues becomes public (any citizen can see this issue post as well as super admin and then super admin will assign this task to any admin then only admin can see this 	  issue) and it will be labeled as Not assigned.
+
+	. when Super Admin assign any issue to a amdin then the issue will be labeled as assigned.
+
+	. after issues assigned by super admin, admin can change the status of the issue (from assigned to resolved) but for doing this admin must have to attach a image as proof of work. 	  admin must be able to change all the assigned post (can only add an image as proof and change the status of the issue).
+
+	. Citizens can upvote public issues.
+
+	. Constraints: Citizens cannot assign issues, update status, or access analytics.
+
+--> How user dashboard will look like after login or sign up:
+
+	. there will be a header on the top which will have logo and name of the app togather in left side and on the right side a button "add an issue" along with first letter of the 	  current user (from database) in a circle with dark background and light color text. and by clicking on this citizens can navigate to my reports page.
+
+	. Header will be stick on the top of the page.
+
+	. and below header need flter box as i said previously (you can chech filter functionality).
+
+	. After this i need all listed issues according to the filter (select any state and city randomly to show at least some issues on the page. further user can change it to see for 	  other areas).
+
+	. All listed issues will be displayed in a card format:
+	
+		> A card will have fixed height and width.
+
+		> A card must include status, title, category, name and numer of issue reporter, landmaek/location, date, upvote buttone with show there are how many upvotes and a button 		  'view issue'. by clicking this button user will go to another page where they can see all the details of this issue with image.
+
+
+2. Admin
+
+--> Must login with Email + Password (admin can not sign up, it will be manually created directaly in database, so undersatand all features and at the end i need some already create admins          to check functionality).
+
+--> Dashboard shows assigned (by super admin) issues only (same dashboard as citizen (admin can go to analytics page by clicking on their first letter on the header. citizen will go to my report ans admin will go to analytics) but with some extra functionality like after clicking on card's view issue button new page will open and there after all details of the issue there will be a button called resolve and if admin clicks it so it will open a form ask to upload an image (mandatory) and an optional feedback/resolution textarea where admin can write something. if image is not provided by the admin the form can be submitted. if everything goes right and form gets submitted successfully then change the status of that issue as resolved in database. after resolving the issue, the issue should not remain in admin dashboard it will now displayed in analytical page of the admin (admin can go to analytical page by clicking on their profile right side in header). 
+
+--> Features:
+
+	. Admin will have access to change the status of the issue but to do this admin must have to fill a form:
+
+	. Update status: Assigned → Resolved.
+
+	. Add feedback/resolution for citizens.
+
+	. Constraints: Admin cannot manage users (except assigned issues), categories, or analytics beyond assigned issues.
+
+--> admins can not upvote but they can see.
+
+
+3. Super Admin
+
+--> Must login with Email + Password (super admin can not sign up, it will be manually created directaly in database, so undersatand all features and at the end i need some already create admins          to check functionality).
+
+
+--> dashboard:
+
+	. super admin dashboard will be same as admin but there are two changes:
+	
+		> after clicking on a particular card for admin it was showing Resolve button to resolve the issue but for super admin it will show Assign button, and if super admin clicks 
+		  it open a pop up, fetch all admin name then display on the pop up, super admin will select one admin name and then submit (can select more than one name, without 			  selection it will not submit). After submission the issue will be displayed in selected admins dashboard.
+
+		> In analytics page, there will be all data.
+
+ --> Features:
+
+	. Manage Admin users: add, remove, update, assign responsibilities.
+
+	. View system analytics: total issues, category breakdown, status distribution, trends, most upvoted issues.
+
+--> Constraints:
+
+	. Cannot verify citizen issues.
+
+	. Cannot manage citizens.
+
+	. Cannot submit issues.
