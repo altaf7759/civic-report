@@ -30,28 +30,43 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Configure CSP directives based on environment
+  const cspDirectives = isProduction ? {
+    // Production CSP - more restrictive
+    defaultSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    scriptSrc: ["'self'"],
+    imgSrc: ["'self'", "data:", "blob:"],
+    connectSrc: ["'self'"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+    objectSrc: ["'none'"],
+    mediaSrc: ["'self'"],
+    frameSrc: ["'none'"],
+  } : {
+    // Development CSP - more permissive for Vite/React development
+    defaultSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts for Vite HMR
+    imgSrc: ["'self'", "data:", "blob:", "https:"],
+    connectSrc: ["'self'", "ws:", "wss:", "https:"], // Allow WebSocket for Vite HMR
+    fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "data:"],
+    objectSrc: ["'none'"],
+    mediaSrc: ["'self'"],
+    frameSrc: ["'none'"],
+  };
+
   // Add comprehensive security headers with Helmet
   app.use(helmet({
-    // Configure Content Security Policy
+    // Configure Content Security Policy based on environment
     contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for React/CSS-in-JS
-        scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "blob:"],
-        connectSrc: ["'self'"],
-        fontSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'none'"],
-      },
+      directives: cspDirectives,
     },
     // Enable Cross-Origin-Resource-Policy
     crossOriginResourcePolicy: { policy: "same-site" },
   }));
 
-  const isProduction = process.env.NODE_ENV === 'production';
-  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
     resave: false,
