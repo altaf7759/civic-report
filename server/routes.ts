@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -236,12 +237,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files
-  app.use('/uploads', (req, res, next) => {
-    // Simple static file serving for uploads
-    // In production, you'd want to use a proper file server or CDN
-    res.sendFile(path.join(process.cwd(), req.path));
-  });
+  // Serve uploaded files safely using express.static
+  // This prevents path traversal attacks by safely serving files only from the uploads directory
+  app.use('/uploads', express.static('uploads', {
+    // Security options
+    dotfiles: 'deny', // Prevent access to hidden files
+    index: false, // Disable directory listings
+    maxAge: '1d' // Cache static files for 1 day
+  }));
 
   const httpServer = createServer(app);
   return httpServer;

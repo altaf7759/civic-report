@@ -40,9 +40,9 @@ export function Filters({ onFiltersChange }: FiltersProps) {
 
   useEffect(() => {
     onFiltersChange({
-      state: selectedState || undefined,
-      city: selectedCity || undefined,
-      status: selectedStatus || undefined,
+      state: selectedState && selectedState !== "all" ? selectedState : undefined,
+      city: selectedCity && selectedCity !== "all" ? selectedCity : undefined,
+      status: selectedStatus && selectedStatus !== "all" ? selectedStatus : undefined,
     });
   }, [selectedState, selectedCity, selectedStatus, onFiltersChange]);
 
@@ -86,7 +86,7 @@ export function Filters({ onFiltersChange }: FiltersProps) {
                 <SelectValue placeholder="All States" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All States</SelectItem>
+                <SelectItem value="all">All States</SelectItem>
                 {states.map((state) => (
                   <SelectItem key={state.value} value={state.value}>
                     {state.label}
@@ -103,7 +103,7 @@ export function Filters({ onFiltersChange }: FiltersProps) {
                 <SelectValue placeholder="All Cities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Cities</SelectItem>
+                <SelectItem value="all">All Cities</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city.value} value={city.value}>
                     {city.label}
@@ -120,7 +120,7 @@ export function Filters({ onFiltersChange }: FiltersProps) {
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="not-assigned">Not Assigned</SelectItem>
                 <SelectItem value="assigned">Assigned</SelectItem>
                 <SelectItem value="resolved">Resolved</SelectItem>

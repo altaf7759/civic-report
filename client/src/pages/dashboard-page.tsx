@@ -14,21 +14,22 @@ export default function DashboardPage() {
     status?: string;
   }>({});
 
+  const isAdmin = user?.role === "admin";
   const { data: issues, isLoading } = useQuery({
-    queryKey: ["/api/issues", filters],
+    queryKey: isAdmin ? ["/api/admin/issues"] : ["/api/issues", filters],
+    enabled: user !== undefined, // Wait for auth state to be resolved
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters.state) params.append("state", filters.state);
-      if (filters.city) params.append("city", filters.city);
-      if (filters.status) params.append("status", filters.status);
-      
-      // For admin users, show only assigned issues
-      if (user?.role === "admin") {
+      if (isAdmin) {
         const response = await fetch("/api/admin/issues", {
           credentials: "include",
         });
         return response.json();
       }
+      
+      const params = new URLSearchParams();
+      if (filters.state) params.append("state", filters.state);
+      if (filters.city) params.append("city", filters.city);
+      if (filters.status) params.append("status", filters.status);
       
       const response = await fetch(`/api/issues?${params.toString()}`, {
         credentials: "include",

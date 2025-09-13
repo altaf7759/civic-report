@@ -73,9 +73,9 @@ export default function MyReportsPage() {
   });
 
   const filteredIssues = issues?.filter((issue: any) => {
-    if (statusFilter && issue.status !== statusFilter) return false;
-    if (categoryFilter && issue.category?.id !== categoryFilter) return false;
-    if (priorityFilter && issue.priority !== priorityFilter) return false;
+    if (statusFilter && statusFilter !== "all" && issue.status !== statusFilter) return false;
+    if (categoryFilter && categoryFilter !== "all" && issue.category?.id !== categoryFilter) return false;
+    if (priorityFilter && priorityFilter !== "all" && issue.priority !== priorityFilter) return false;
     return true;
   });
 
@@ -119,7 +119,7 @@ export default function MyReportsPage() {
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="not-assigned">Not Assigned</SelectItem>
                     <SelectItem value="assigned">Assigned</SelectItem>
                     <SelectItem value="resolved">Resolved</SelectItem>
@@ -134,7 +134,7 @@ export default function MyReportsPage() {
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     {(categories || []).map((category: any) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -151,7 +151,7 @@ export default function MyReportsPage() {
                     <SelectValue placeholder="All Priorities" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Priorities</SelectItem>
+                    <SelectItem value="all">All Priorities</SelectItem>
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>

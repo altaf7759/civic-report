@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
+import helmet from "helmet";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
@@ -29,11 +30,41 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  // Add comprehensive security headers with Helmet
+  app.use(helmet({
+    // Configure Content Security Policy
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for React/CSS-in-JS
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "blob:"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+    // Enable Cross-Origin-Resource-Policy
+    crossOriginResourcePolicy: { policy: "same-site" },
+  }));
+
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    // Harden session cookies with security flags
+    cookie: {
+      httpOnly: true, // Prevent XSS attacks
+      secure: isProduction, // Only send over HTTPS in production
+      sameSite: 'lax', // CSRF protection
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+    name: 'sessionId', // Don't use default session name
   };
 
   app.set("trust proxy", 1);
@@ -64,7 +95,7 @@ export function setupAuth(app: Express) {
   app.post("/api/register", async (req, res, next) => {
     const existingUser = await storage.getUserByEmail(req.body.email);
     if (existingUser) {
-      return res.status(400).send("Email already exists");
+      return res.status(400).json({ message: "Email already exists" });
     }
 
     const user = await storage.createUser({
@@ -74,12 +105,16 @@ export function setupAuth(app: Express) {
 
     req.login(user, (err) => {
       if (err) return next(err);
-      res.status(201).json(user);
+      // Sanitize user object to remove sensitive information
+      const { password, ...sanitizedUser } = user;
+      res.status(201).json(sanitizedUser);
     });
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+    // Sanitize user object to remove sensitive information
+    const { password, ...sanitizedUser } = req.user!;
+    res.status(200).json(sanitizedUser);
   });
 
   app.post("/api/logout", (req, res, next) => {
@@ -91,6 +126,8 @@ export function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+    // Sanitize user object to remove sensitive information
+    const { password, ...sanitizedUser } = req.user!;
+    res.json(sanitizedUser);
   });
 }
