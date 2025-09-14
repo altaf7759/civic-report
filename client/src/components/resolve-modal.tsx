@@ -1,21 +1,28 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle 
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Upload, AlertCircle } from "lucide-react";
-import { resolveIssueSchema } from "@shared/schema";
-import type { ResolveIssue } from "@shared/schema";
+import { X, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+// ✅ Schema with required resolutionNotes and resolutionImageUrl
+const resolveIssueSchema = z.object({
+  resolutionNotes: z.string().min(1, "Resolution notes are required"),
+  resolutionImageUrl: z.string().optional(), // handled by backend
+});
+
+type ResolveIssue = z.infer<typeof resolveIssueSchema>;
 
 interface ResolveModalProps {
   isOpen: boolean;
@@ -36,11 +43,13 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
     },
   });
 
+  // ✅ Mutation
   const resolveMutation = useMutation({
     mutationFn: async (data: ResolveIssue) => {
+      console.log("🔥 mutationFn called with data:", data);
+
       const formData = new FormData();
       formData.append("resolutionNotes", data.resolutionNotes);
-      
       if (selectedFile) {
         formData.append("resolutionImage", selectedFile);
       }
@@ -50,6 +59,8 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
         body: formData,
         credentials: "include",
       });
+
+      console.log("📡 Response status:", response.status);
 
       if (!response.ok) {
         throw new Error("Failed to resolve issue");
@@ -63,11 +74,9 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
         title: "Issue resolved",
         description: "The issue has been marked as resolved.",
       });
-      onClose();
-      form.reset();
-      setSelectedFile(null);
+      handleClose();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Resolution failed",
         description: error.message || "Please try again.",
@@ -76,6 +85,7 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
     },
   });
 
+  // ✅ File change handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -83,7 +93,10 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
     }
   };
 
+  // ✅ Form submit
   const onSubmit = (data: ResolveIssue) => {
+    console.log("📌 onSubmit called with:", data);
+
     if (!selectedFile) {
       toast({
         title: "Proof image required",
@@ -92,10 +105,11 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
       });
       return;
     }
-    
+
     resolveMutation.mutate(data);
   };
 
+  // ✅ Close handler
   const handleClose = () => {
     onClose();
     form.reset();
@@ -113,11 +127,11 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Notes */}
           <div>
             <Label htmlFor="resolutionNotes">Resolution Notes *</Label>
             <Textarea
               id="resolutionNotes"
-              data-testid="textarea-resolution-notes"
               {...form.register("resolutionNotes")}
               rows={3}
               placeholder="Describe how the issue was resolved"
@@ -129,6 +143,7 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
             )}
           </div>
 
+          {/* File Upload */}
           <div>
             <Label htmlFor="proof-upload">Upload Proof Image *</Label>
             <div className="mt-2">
@@ -148,7 +163,6 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
                         className="sr-only"
                         accept="image/*"
                         onChange={handleFileChange}
-                        data-testid="input-proof-upload"
                       />
                     </label>
                   </div>
@@ -167,7 +181,6 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedFile(null)}
-                      data-testid="button-remove-proof"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -177,15 +190,15 @@ export function ResolveModal({ isOpen, onClose, issueId }: ResolveModalProps) {
             </div>
           </div>
 
+          {/* Buttons */}
           <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose} data-testid="button-cancel-resolve">
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={resolveMutation.isPending}
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
-              data-testid="button-submit-resolve"
             >
               {resolveMutation.isPending ? "Resolving..." : "Mark as Resolved"}
             </Button>
